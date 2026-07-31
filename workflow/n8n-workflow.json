@@ -1,0 +1,259 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ac2d392d-d32d-4e42-bb27-babf3c2ff812",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "hour": 8
+            }
+          ]
+        },
+        "feedUrl": "https://news.google.com/rss/search?q=Intercom+OR+Zenvia+OR+Twilio+OR+RD+Station&hl=pt-BR&gl=BR&ceid=BR:pt-419"
+      },
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "7e952cf3-8f54-45d5-819e-72b45008b9ac",
+      "name": "RSS Feed Trigger"
+    },
+    {
+      "parameters": {
+        "maxItems": 5
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "cd55d410-18a4-403f-abe8-4ae927ed85da",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "chatId": "-5305950721",
+        "text": "=📰 {{$json.title}}  {{$json.link}}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "179a3e67-a24a-4816-98ab-f852e6d608f4",
+      "name": "Send a text message",
+      "webhookId": "9b96b818-2a22-47bc-832a-3315e69a9052",
+      "credentials": {
+        "telegramApi": {
+          "id": "LuPnyseZxFtoEFJs",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "0273886e-9082-4527-a9e8-9940640f7f6e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      },
+      "notes": "=Você é uma analista de Product Marketing da Blip.\n\nReceba uma notícia e devolva APENAS JSON neste formato:\n\n{\n  \"resumo\": \"2 frases objetivas\",\n  \"impacto_gtm\": \"Alto|Médio|Baixo\",\n  \"acao_recomendada\": \"1 ação prática para time de produto ou vendas\"\n}\n\nNotícia:\nTítulo: {{$json.title}}\nDescrição: {{$json.contentSnippet}}"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Atue como um Especialista em Inteligência Competitiva e Go-To-Market.\n\nAnálise esta notícia do RSS:\nTítulo: {{ $json.title }}\nConteúdo: {{ $json.description || $json.content }}\n\nResponda OBRIGATORIAMENTE em formato JSON estrito com esta estrutura exata:\n{\n  \"resumo\": \"Escreva aqui um resumo do fato em até 2 frases\",\n  \"impacto_gtm\": \"Escreva aqui como isso afeta as vendas e o mercado\",\n  \"acao_recomendada\": \"Escreva aqui o que o time deve fazer\",\n  \"score_estrategico\": 8\n}\n\n--- REGRAS PARA O SCORE ESTRATÉGICO (1 a 10) ---\nAtribua um número inteiro de 1 a 10 considerando a ameaça competitiva para uma plataforma de atendimento conversacional com IA:\n- Nota 1 a 3 (Baixa Ameaça): Notícia sobre mercado distante ou soluções básicas sem IA conversacional.\n- Nota 4 a 7 (Média Ameaça): Lançamento de funcionalidades parciais de IA ou expansão em nichos adjacentes.\n- Nota 8 a 10 (Alta Ameaça): Concorrente direto lançando agentes de IA robustos, integração WhatsApp/Omnichannel ou novos aportes expressivos no setor.",
+              "role": "model"
+            },
+            {
+              "content": "={{ $json.result.text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "17e8c425-d97f-4f8f-9155-53939068beed",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "UCriDtKAN9u5XOQH",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Captura a resposta no formato do nó do Gemini/Google ou da OpenAI\nlet rawContent = \"\";\n\nif ($json.content && $json.content.parts && $json.content.parts[0]) {\n  rawContent = $json.content.parts[0].text;\n} else {\n  rawContent = $json.message?.content || $json.output || $json.text || \"\";\n}\n\n// Limpa formatações markdown\nrawContent = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();\n\nlet briefingText = \"\";\n\ntry {\n  const data = JSON.parse(rawContent);\n  const score = Number(data.score_estrategico) || 0;\n\n  // Lógica de Priorização e Badges\n  let badge = \"🟢 BAIXA AMEAÇA\";\n  if (score >= 8) {\n    badge = \"🔴 ALTA AMEAÇA\";\n  } else if (score >= 4) {\n    badge = \"🟡 MÉDIA AMEAÇA\";\n  }\n\n  briefingText = `\n🧠 AI COMPETITIVE BRIEFING\n\n📊 Score Estratégico: ${score}/10 (${badge})\n\n📌 Resumo: ${data.resumo || 'Não informado'}\n\n🚨 Impacto GTM: ${data.impacto_gtm || 'Não informado'}\n\n🎯 Ação: ${data.acao_recomendada || 'Não informada'}\n`;\n} catch (error) {\n  briefingText = `\n🧠 AI COMPETITIVE BRIEFING\n\n⚠️ Erro ao formatar JSON. Resposta bruta:\n${rawContent}\n`;\n}\n\nreturn [{\n  json: {\n    briefing: briefingText\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        144
+      ],
+      "id": "36296bae-ecdd-4faa-81e7-96e9d3a94a0d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "chatId": "-5305950721",
+        "text": "={{ $json.briefing }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1536,
+        144
+      ],
+      "id": "2af61d18-be23-44f0-a002-7bc27f8cfe51",
+      "name": "Send a text message1",
+      "webhookId": "de38d4ab-91a2-41c0-ae75-0f1dc086079f",
+      "credentials": {
+        "telegramApi": {
+          "id": "LuPnyseZxFtoEFJs",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "RSS Feed Trigger": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7b597577-4a6f-4a9c-84d2-0945198fe346",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51fa31854a57f591a0c42360b7ba44f999294be5ca8dfcf5a0a072d2dc10aeb0"
+  },
+  "nodeGroups": [],
+  "id": "KwwnkiOFzkxgxEox",
+  "tags": []
+}
