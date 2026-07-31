@@ -41,10 +41,12 @@ O workflow automatiza todo o processo em tempo real:
 ## 🖼️ Demonstração do Workflow
 
 ### Fluxo no n8n:
-![n8n Workflow](screenshots/workflow.png)
+<img width="1440" height="900" alt="workflow" src="https://github.com/user-attachments/assets/0883627e-b412-4242-942a-8970ed5afc48" />
+
 
 ### Resultado Entregue no Telegram:
-![Telegram Result](screenshots/telegram-result.png)
+<img width="592" height="1280" alt="telegram-result png" src="https://github.com/user-attachments/assets/7ed6b1ee-eeab-4283-ab82-c467cbc7f240" />
+
 
 ---
 
