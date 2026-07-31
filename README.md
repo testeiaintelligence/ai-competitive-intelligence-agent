@@ -45,7 +45,8 @@ O workflow automatiza todo o processo em tempo real:
 
 
 ### Resultado Entregue no Telegram:
-<img width="592" height="1280" alt="telegram-result png" src="https://github.com/user-attachments/assets/7ed6b1ee-eeab-4283-ab82-c467cbc7f240" />
+<img width="592" height="1280" alt="telegram-result png" src="https://github.com/user-attachments/assets/293078f3-b585-419a-9985-c378b17992db" />
+
 
 
 ---
